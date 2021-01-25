@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from typing import Type, List, Union
 
 #Simplifying Torch implementation of resnet.
 #Adopted from https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
@@ -13,7 +14,7 @@ def conv1x1(in_planes: int, out_planes: int, stride: int=1):
 
 class BasicBlock(nn.Module):
     expansion: int=1
-    def __init__(self, in_depth, out_depth, stride=1 downsample=None):
+    def __init__(self, in_depth, out_depth, stride=1, downsample=None):
         super(BasicBlock, self).__init__()
         self.conv1 = conv3x3(in_depth, out_depth, stride=stride)
         self.conv2 = conv3x3(out_depth, out_depth, stride=1)
@@ -82,33 +83,35 @@ class ResNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1,1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
     
-	for m in self.modules():
+        for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu') #He init for conv weights
             ##No need to initialize BN weights biases manually since they initialize to 1 and 0, respectively, by default.
 
     def _make_layer(self, block: Type[Union[BasicBlock, BottleneckBlock]], neck_depth: int, blocks: int, stride: int=1):
+        downsample = None
         if stride != 1 or self.in_depth != neck_depth * block.expansion:
             downsample = nn.Sequential(
                     conv1x1(self.in_depth, neck_depth*block.expansion, stride),
                     nn.BatchNorm2d(neck_depth*block.expansion)
                     )
-            layers = []
+        layers = []
 
-            layers.append(block(self.in_depth, neck_depth, stride, downsample))
-            self.in_depth = neck_depth*block.expansion
-            for _ in range(1, blocks):
-                layers.append(block(self.in_depth, neck_depth))
+        layers.append(block(self.in_depth, neck_depth, stride, downsample))
+        self.in_depth = neck_depth*block.expansion
+        for _ in range(1, blocks):
+            layers.append(block(self.in_depth, neck_depth))
 
-            return nn.Sequential(*layers)
+        return nn.Sequential(*layers)
 
-    def forward(x):
+    def forward(self,x):
         x = self.block0(x)
         x = self.block1(x)
         x = self.block2(x)
         x = self.block3(x)
         x = self.block4(x)
         x = self.avgpool(x)
+        x = torch.flatten(x, 1)
         x = self.fc(x)
         return x
 
