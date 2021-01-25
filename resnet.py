@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 
+#Simplifying Torch implementation of resnet.
+#Adopted from https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
+
 def conv3x3(in_planes: int, out_planes: int, stride: int=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
