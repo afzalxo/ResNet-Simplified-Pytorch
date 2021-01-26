@@ -63,8 +63,8 @@ def main():
     classes=('plane', 'car', 'bird', 'cat',
                'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     model = resnet18().to(dev)
-    model = torch.nn.DataParallel(model)
-    cudnn.benchmark=True
+    #model = torch.nn.DataParallel(model)
+    #cudnn.benchmark=True
     optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, weight_decay=5e-4, lr=lr)
     criterion = torch.nn.CrossEntropyLoss().to(dev)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
