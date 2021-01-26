@@ -66,15 +66,15 @@ class BottleneckBlock(nn.Module):
         return x
 
 class ResNet(nn.Module):
-    def __init__(self, block: Type[Union[BasicBlock, BottleneckBlock]], layers: List[int], num_classes: int = 1000):
+    def __init__(self, block: Type[Union[BasicBlock, BottleneckBlock]], layers: List[int], num_classes: int = 10):
         super(ResNet, self).__init__()
         self.in_depth = 64
 
         self.block0 = nn.Sequential(
-                nn.Conv2d(3, self.in_depth, kernel_size=7, stride=2, padding=3, bias=False),
+                nn.Conv2d(3, self.in_depth, kernel_size=3, stride=1, padding=1, bias=False),
                 nn.BatchNorm2d(self.in_depth),
                 nn.ReLU(inplace=True),
-                nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+                #nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
                 )
         self.block1 = self._make_layer(block, 64, layers[0]) 
         self.block2 = self._make_layer(block, 128, layers[1], stride=2) 
@@ -83,10 +83,12 @@ class ResNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1,1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
     
+        '''
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu') #He init for conv weights
             ##No need to initialize BN weights biases manually since they initialize to 1 and 0, respectively, by default.
+        '''
 
     def _make_layer(self, block: Type[Union[BasicBlock, BottleneckBlock]], neck_depth: int, blocks: int, stride: int=1):
         downsample = None
