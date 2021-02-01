@@ -7,10 +7,10 @@ from typing import Type, List, Union
 
 def conv3x3(in_planes: int, out_planes: int, stride: int=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=1, bias=False)
+                     padding=1, bias=True)
 
 def conv1x1(in_planes: int, out_planes: int, stride: int=1):
-    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=True)
 
 class BasicBlock(nn.Module):
     expansion: int=1
@@ -107,15 +107,21 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self,x):
+        store_list = []
         x = self.block0(x)
+        store_list.append(x)
         x = self.block1(x)
+        store_list.append(x)
         x = self.block2(x)
+        store_list.append(x)
         x = self.block3(x)
+        store_list.append(x)
         x = self.block4(x)
+        store_list.append(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)
-        return x
+        return x, store_list
 
 def resnet18():
     return ResNet(BasicBlock, [2,2,2,2])
